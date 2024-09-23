@@ -1,30 +1,145 @@
-const Link = (props: JSX.IntrinsicElements['a']) => (
-  <a
-    className="text-pink-500 underline hover:no-underline dark:text-pink-400"
-    {...props}
-  />
-);
+import React, { useState } from 'react';
+
+interface Entry {
+  algo: number;
+  frontend: number;
+  name: string;
+}
+
+type SortKey = 'algo' | 'frontend' | 'total';
 
 export default function App() {
+  const [entries, setEntries] = useState<Entry[]>([]);
+  const [name, setName] = useState('');
+  const [algo, setAlgo] = useState('');
+  const [frontend, setFrontend] = useState('');
+  const [sortKey, setSortKey] = useState<SortKey>('algo');
+  const [sortAsc, setSortAsc] = useState(true);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const newEntry: Entry = {
+      algo: Number(algo),
+      frontend: Number(frontend),
+      name,
+    };
+    setEntries([...entries, newEntry]);
+    setName('');
+    setAlgo('');
+    setFrontend('');
+  };
+
+  const handleClear = () => {
+    setEntries([]);
+  };
+
+  const handleSort = (key: SortKey, asc: boolean) => {
+    setSortKey(key);
+    setSortAsc(asc);
+  };
+
+  const sortedEntries = [...entries].sort((a, b) => {
+    const aValue = sortKey === 'total' ? a.algo + a.frontend : a[sortKey];
+    const bValue = sortKey === 'total' ? b.algo + b.frontend : b[sortKey];
+    if (aValue < bValue) {
+      return sortAsc ? -1 : 1;
+    }
+    if (aValue > bValue) {
+      return sortAsc ? 1 : -1;
+    }
+    return 0;
+  });
+
   return (
-    <div className="mx-auto my-8 mt-10 w-8/12 rounded border border-gray-200 p-4 shadow-md dark:border-neutral-600 dark:bg-neutral-800 dark:shadow-none">
-      <h1 className="mb-4 text-4xl">Welcome</h1>
-      <p className="my-4">
-        <em>Minimal, fast, sensible defaults.</em>
-      </p>
-      <p className="my-4">
-        Using <Link href="https://vitejs.dev/">Vite</Link>,{' '}
-        <Link href="https://reactjs.org/">React</Link>,{' '}
-        <Link href="https://www.typescriptlang.org/">TypeScript</Link> and{' '}
-        <Link href="https://tailwindcss.com/">Tailwind</Link>.
-      </p>
-      <p className="my-4">
-        Change{' '}
-        <code className="border-1 2py-1 rounded border border-pink-500 bg-neutral-100 px-1 font-mono text-pink-500 dark:border-pink-400 dark:bg-neutral-700 dark:text-pink-400">
-          src/App.tsx
-        </code>{' '}
-        for live updates.
-      </p>
+    <div>
+      <form onSubmit={handleSubmit}>
+        <input
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Name"
+          required
+          type="text"
+          value={name}
+        />
+        <input
+          onChange={(e) => setAlgo(e.target.value)}
+          placeholder="Algo Score"
+          required
+          type="number"
+          value={algo}
+        />
+        <input
+          onChange={(e) => setFrontend(e.target.value)}
+          placeholder="Frontend Score"
+          required
+          type="number"
+          value={frontend}
+        />
+        <button type="submit">Add Entry</button>
+      </form>
+      <button onClick={handleClear}>Clear Table</button>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>
+              Algo
+              <button
+                id="sort-algo-asc"
+                onClick={() => handleSort('algo', true)}
+              >
+                ▲
+              </button>
+              <button
+                id="sort-algo-desc"
+                onClick={() => handleSort('algo', false)}
+              >
+                ▼
+              </button>
+            </th>
+            <th>
+              Frontend
+              <button
+                id="sort-frontend-asc"
+                onClick={() => handleSort('frontend', true)}
+              >
+                ▲
+              </button>
+              <button
+                id="sort-frontend-desc"
+                onClick={() => handleSort('frontend', false)}
+              >
+                ▼
+              </button>
+            </th>
+            <th>
+              Total
+              <button
+                id="sort-total-asc"
+                onClick={() => handleSort('total', true)}
+              >
+                ▲
+              </button>
+              <button
+                id="sort-total-desc"
+                onClick={() => handleSort('total', false)}
+              >
+                ▼
+              </button>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {sortedEntries.map((entry, index) => (
+            <tr key={index}>
+              <td>{entry.name}</td>
+              <td>{entry.algo}</td>
+              <td>{entry.frontend}</td>
+              <td>{entry.algo + entry.frontend}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }
